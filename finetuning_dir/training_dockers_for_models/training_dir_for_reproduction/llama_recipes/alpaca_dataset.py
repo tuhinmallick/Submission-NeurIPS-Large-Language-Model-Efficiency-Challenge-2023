@@ -33,20 +33,20 @@ class InstructionDataset(Dataset):
         self.tokenizer = tokenizer
         self.partition_use = partition
         self.max_words_in_dataset = 0
-        
-        ###########################
-        path = "/home/anmol/nips_challenge/efficiency_challenge_repo/data/training_datasets/bbq_train_dataset.json"
-        if 'training_data_path' in os.environ:
-            path = os.environ['training_data_path']
+
+        path = os.environ.get(
+            'training_data_path',
+            "/home/anmol/nips_challenge/efficiency_challenge_repo/data/training_datasets/bbq_train_dataset.json",
+        )
         print("TRAIN PATH is: ", path)
         self.ann = json.load(open(path))
         print("Initial len is: ", len(self.ann))
         self.ann = list(filter(lambda x: self.is_input_valid(x), self.ann))
         print("Final len is: ", len(self.ann))
 
-        
+
         ########################
-        
+
         FRAC_TO_TRANSFER  = 0.8
         IDX_END_TRAIN = int(FRAC_TO_TRANSFER * len(self.ann))
 
@@ -56,7 +56,7 @@ class InstructionDataset(Dataset):
             self.ann = self.ann[IDX_END_TRAIN:]
             self.ann = self.ann[:100]
         ##############################
-        
+
         print("MAX WORDS in dataset is: ", self.max_words_in_dataset)
         if self.max_words_in_dataset < self.max_words:
             self.max_words = self.max_words_in_dataset
@@ -122,9 +122,7 @@ class InstructionDataset(Dataset):
             example, dtype=torch.int64
         )
         padding = self.max_words - example.shape[0]
-        
+
         self.max_words_in_dataset = max(self.max_words_in_dataset, example.shape[0]+5)
-        
-        if padding < 0:
-            return False
-        return True
+
+        return padding >= 0

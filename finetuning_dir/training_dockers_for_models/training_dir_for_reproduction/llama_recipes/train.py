@@ -23,7 +23,7 @@ os.environ["training_data_path"] = "./pegasus_combined_general_train_dataset.jso
 
 
 rand_str = uuid.uuid4()
-rand_str = f"model_reproduced_github"
+rand_str = "model_reproduced_github"
 # rand_str = "debug_mistral"
 
 ################

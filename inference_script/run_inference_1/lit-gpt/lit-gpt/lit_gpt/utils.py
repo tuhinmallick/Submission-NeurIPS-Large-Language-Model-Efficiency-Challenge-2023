@@ -19,9 +19,7 @@ from torch.serialization import normalize_storage_type
 
 def find_multiple(n: int, k: int) -> int:
     assert k > 0
-    if n % k == 0:
-        return n
-    return n + k - (n % k)
+    return n if n % k == 0 else n + k - (n % k)
 
 
 def num_parameters(module: nn.Module, requires_grad: Optional[bool] = None) -> int:
@@ -245,9 +243,7 @@ def check_valid_checkpoint_dir(checkpoint_dir: Path) -> None:
     else:
         problem = " is not a checkpoint directory"
 
-    # list locally available checkpoints
-    available = list(Path("checkpoints").glob("*/*"))
-    if available:
+    if available := list(Path("checkpoints").glob("*/*")):
         options = "\n --checkpoint_dir ".join([""] + [repr(str(p.resolve())) for p in available])
         extra = f"\nYou have downloaded locally:{options}\n"
     else:

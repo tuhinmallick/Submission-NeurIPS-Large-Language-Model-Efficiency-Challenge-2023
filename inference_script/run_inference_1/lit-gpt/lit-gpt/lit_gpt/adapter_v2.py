@@ -145,7 +145,9 @@ class CausalSelfAttention(BaseCausalSelfAttention):
         }
         state_dict = map_old_state_dict_weights(state_dict, mapping, prefix)
         # For compatibility with older checkpoints
-        if (key := prefix + "gating_factor") in state_dict and state_dict[key].size(1) == self.config.n_head:
+        if (key := f"{prefix}gating_factor") in state_dict and state_dict[
+            key
+        ].size(1) == self.config.n_head:
             state_dict[key] = state_dict[key].permute(0, 2, 1, 3)
         super()._load_from_state_dict(state_dict, prefix, *args, **kwargs)
 

@@ -80,8 +80,8 @@ def test_against_gpt_neox_model(rotary_pct, batch_size, n_embd, parallel_residua
 @torch.inference_mode()
 def test_against_original_falcon_40b():
     file_path = wd / "tests" / "original_falcon_40b.py"
-    url = "https://gist.githubusercontent.com/carmocca/feed39b1bc65a29f73c1cecc58a01167/raw/a9a65f2b93716b3c09ec9f354d535ae5953de08f/original_falcon_40b.py"
     if not file_path.is_file():
+        url = "https://gist.githubusercontent.com/carmocca/feed39b1bc65a29f73c1cecc58a01167/raw/a9a65f2b93716b3c09ec9f354d535ae5953de08f/original_falcon_40b.py"
         urlretrieve(url=url, filename=file_path)
 
     from lit_gpt import GPT, Config
@@ -249,8 +249,8 @@ def test_against_hf_llama2(ours_kwargs):
 @torch.inference_mode()
 def test_against_hf_phi():
     file_path = wd / "tests" / "original_phi_1_5.py"
-    url = "https://gist.githubusercontent.com/carmocca/8ec003d9e0d2fdb09ea92941cd0985b4/raw/2ba35c28824d4f4d5dce14f9588a80067cb6ae7f/original_phi_1_5.py"
     if not file_path.is_file():
+        url = "https://gist.githubusercontent.com/carmocca/8ec003d9e0d2fdb09ea92941cd0985b4/raw/2ba35c28824d4f4d5dce14f9588a80067cb6ae7f/original_phi_1_5.py"
         urlretrieve(url=url, filename=file_path)
 
     from lit_gpt import GPT, Config

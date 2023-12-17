@@ -104,7 +104,7 @@ def test_prepare_full(tmp_path):
         )
 
         all_names = prepare_redpajama.filename_sets.keys()
-        bin_files = [el + "_0000000000.bin" for el in all_names]
+        bin_files = [f"{el}_0000000000.bin" for el in all_names]
 
     assert set(os.listdir(dest_path)) == set(bin_files)
 

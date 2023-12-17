@@ -120,9 +120,9 @@ def copy_weights_llama(
     for name, param in lit_weights.items():
         if name.endswith(".attn.attn.weight"):
             from_name, number = layer_template(name, 2)
-            q = "model.layers.{}.self_attn.q_proj.weight".format(number)
-            k = "model.layers.{}.self_attn.k_proj.weight".format(number)
-            v = "model.layers.{}.self_attn.v_proj.weight".format(number)
+            q = f"model.layers.{number}.self_attn.q_proj.weight"
+            k = f"model.layers.{number}.self_attn.k_proj.weight"
+            v = f"model.layers.{number}.self_attn.v_proj.weight"
             qkv = load_param(param, name, None)
             qp, kp, vp = qkv_split(qkv, config)
             for to_name, param in zip((q, k, v), (qp, kp, vp)):

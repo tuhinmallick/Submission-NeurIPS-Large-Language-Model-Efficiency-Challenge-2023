@@ -13,8 +13,7 @@ torch.manual_seed(42)
 
 def load_model(model_name, tp_size=1):
 
-    llm = LLM(model_name, tensor_parallel_size=tp_size)
-    return llm
+    return LLM(model_name, tensor_parallel_size=tp_size)
 
 def main(
     model,

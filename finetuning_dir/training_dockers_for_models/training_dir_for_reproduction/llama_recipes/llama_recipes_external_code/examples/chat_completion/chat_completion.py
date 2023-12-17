@@ -75,11 +75,11 @@ def main(
     tokenizer = LlamaTokenizer.from_pretrained(model_name)
     tokenizer.add_special_tokens(
         {
-         
+
             "pad_token": "<PAD>",
         }
     )
-    
+
     chats = format_tokens(dialogs, tokenizer)
 
     with torch.no_grad():
@@ -90,9 +90,9 @@ def main(
                                         )
             # Safety check of the user prompt
             safety_results = [check(dialogs[idx][0]["content"]) for check in safety_checker]
-            are_safe = all([r[1] for r in safety_results])
+            are_safe = all(r[1] for r in safety_results)
             if are_safe:
-                print(f"User prompt deemed safe.")
+                print("User prompt deemed safe.")
                 print("User prompt:\n", dialogs[idx][0]["content"])
                 print("\n==================================\n")
             else:
@@ -123,7 +123,7 @@ def main(
 
             # Safety check of the model output
             safety_results = [check(output_text) for check in safety_checker]
-            are_safe = all([r[1] for r in safety_results])
+            are_safe = all(r[1] for r in safety_results)
             if are_safe:
                 print("User input and model output deemed safe.")
                 print(f"Model output:\n{output_text}")

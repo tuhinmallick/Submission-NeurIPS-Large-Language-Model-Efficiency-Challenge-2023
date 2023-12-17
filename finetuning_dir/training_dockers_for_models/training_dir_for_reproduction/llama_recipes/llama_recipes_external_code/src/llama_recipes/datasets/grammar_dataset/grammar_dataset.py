@@ -48,11 +48,9 @@ class grammar(Dataset):
 
         input_ = example_batch["input"]
         target_ = example_batch["target"]
-        
+
         prompt = f"Correct this to standard English: {input_}\n---\nCorrected: {target_}"
-        sample = self.tokenizer(prompt)
-        
-        return sample
+        return self.tokenizer(prompt)
 
     def __getitem__(self, index):
         sample = self.convert_to_features(self.dataset["train"][index])

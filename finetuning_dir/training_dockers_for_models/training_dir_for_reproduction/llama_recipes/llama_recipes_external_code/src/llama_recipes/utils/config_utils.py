@@ -39,25 +39,23 @@ def generate_peft_config(train_config, kwargs):
     configs = (lora_config, llama_adapter_config, prefix_config)
     peft_configs = (LoraConfig, AdaptionPromptConfig, PrefixTuningConfig)
     names = tuple(c.__name__.rstrip("_config") for c in configs)
-    
+
     assert train_config.peft_method in names, f"Peft config not found: {train_config.peft_method}"
-    
+
     config = configs[names.index(train_config.peft_method)]()
-    
+
     update_config(config, **kwargs)
     params = asdict(config)
-    peft_config = peft_configs[names.index(train_config.peft_method)](**params)
-    
-    return peft_config
+    return peft_configs[names.index(train_config.peft_method)](**params)
 
 
 def generate_dataset_config(train_config, kwargs):
     names = tuple(DATASET_PREPROC.keys())
-        
+
     assert train_config.dataset in names, f"Unknown dataset: {train_config.dataset}"
-    
-    dataset_config = {k:v for k, v in inspect.getmembers(datasets)}[train_config.dataset]()
-        
+
+    dataset_config = dict(inspect.getmembers(datasets))[train_config.dataset]()
+
     update_config(dataset_config, **kwargs)
-    
+
     return  dataset_config

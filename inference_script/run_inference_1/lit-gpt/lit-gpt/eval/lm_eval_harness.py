@@ -168,7 +168,7 @@ class EvalHarnessBase(BaseLM):
 
         lm = self
         if use_cache:
-            lm = base.CachingLM(lm, "lm_cache/" + name + ".db")
+            lm = base.CachingLM(lm, f"lm_cache/{name}.db")
 
         results = evaluator.evaluate(
             lm=lm,

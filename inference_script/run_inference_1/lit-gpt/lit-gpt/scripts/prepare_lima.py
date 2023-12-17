@@ -104,9 +104,10 @@ def format_dataset(dataset_partition, include_multi_turn_conversations):
     for entry in dataset_partition:
         convo = entry["conversations"]
         if include_multi_turn_conversations:
-            for i in range(0, len(convo) - 1, 2):
-                formatted_ds.append({"instruction": convo[i], "input": "", "output": convo[i + 1]})
-
+            formatted_ds.extend(
+                {"instruction": convo[i], "input": "", "output": convo[i + 1]}
+                for i in range(0, len(convo) - 1, 2)
+            )
         else:
             formatted_ds.append({"instruction": convo[0], "input": "", "output": convo[1]})
 
