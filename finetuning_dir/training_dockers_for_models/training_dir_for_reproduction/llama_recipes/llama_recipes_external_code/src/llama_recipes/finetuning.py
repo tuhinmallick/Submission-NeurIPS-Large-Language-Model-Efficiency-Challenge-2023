@@ -183,7 +183,7 @@ def main(**kwargs):
         )
         if fsdp_config.fsdp_activation_checkpointing:
             apply_fsdp_checkpointing(model)
-    elif not train_config.quantization and not train_config.enable_fsdp:
+    elif not train_config.quantization:
         model.to("cuda")
 
     ###############################################################################
@@ -269,7 +269,7 @@ def main(**kwargs):
     print("Training config is: ", train_config)
 
     print("Going to start the training process.")
-    
+
     print("Model is: ", model)
 
     # Start the training process

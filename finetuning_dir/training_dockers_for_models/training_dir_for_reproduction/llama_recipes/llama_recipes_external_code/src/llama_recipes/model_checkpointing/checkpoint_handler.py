@@ -58,7 +58,7 @@ def load_model_sharded(model, rank, cfg):
 
     if not load_dir.exists():
         if rank == 0:
-            print(f"No sharded_state_dict checkpoint directory found...skipping")
+            print("No sharded_state_dict checkpoint directory found...skipping")
         return
     if rank == 0:
          print(f"loading model from model path: {load_dir} ")
@@ -69,13 +69,13 @@ def load_model_sharded(model, rank, cfg):
         if rank == 0:
             ck = checkpoint.keys()
             print(f" checkpoint key len = {len(ck)} and \n keys =  {ck}")
-      
+
         dist_cp.load_state_dict(
             state_dict=checkpoint,
             storage_reader=reader,
         )
         if rank == 0:
-            print(f"checkpoint after load_state_dict()")
+            print("checkpoint after load_state_dict()")
             ck = checkpoint.keys()
             print(f" checkpoint key len = {len(ck)} and \n keys =  {ck}")
         model.load_state_dict(checkpoint["model"])
@@ -137,10 +137,10 @@ def save_model_checkpoint(
         cpu_state = model.state_dict()
 
         print(f"saving process: rank {rank}  done w model state_dict\n")
-   
+
 
     if rank == 0:
-        print(f"--> saving model ...")
+        print("--> saving model ...")
         # create save path
         folder_name = (
         cfg.dist_checkpoint_root_folder
@@ -151,13 +151,13 @@ def save_model_checkpoint(
         )
         save_dir = Path.cwd() / folder_name
         save_dir.mkdir(parents=True, exist_ok=True)
-        save_name = cfg.model_name + "-" + str(epoch) + ".pt"
-        save_full_path = str(save_dir) + "/" + save_name
+        save_name = f"{cfg.model_name}-{str(epoch)}.pt"
+        save_full_path = f"{str(save_dir)}/{save_name}"
 
         # save model
         torch.save(cpu_state, save_full_path)
 
-        
+
         print(f"model checkpoint saved for epoch {epoch} at {save_full_path}\n")
       
 
@@ -185,8 +185,8 @@ def load_model_checkpoint(model, rank, cfg):
     # integrate into loaded model
     model.load_state_dict(model_checkpoint)
 
-    
-    print(f"model checkpoint loaded to rank0 cpu")
+
+    print("model checkpoint loaded to rank0 cpu")
 
 
 def save_optimizer_checkpoint(model, optimizer, rank, cfg, epoch=1):
@@ -199,7 +199,7 @@ def save_optimizer_checkpoint(model, optimizer, rank, cfg, epoch=1):
 
     optim_state = FSDP.full_optim_state_dict(model, optimizer)
 
-    
+
     print(f"optim state dict ready on {rank} and len of {len(optim_state)}\n")
 
     if rank == 0:
@@ -218,7 +218,7 @@ def save_optimizer_checkpoint(model, optimizer, rank, cfg, epoch=1):
         )
         opt_save_full_path = save_dir / opt_save_name
 
-        print(f"--> saving optimizer state...")
+        print("--> saving optimizer state...")
 
         torch.save(optim_state, opt_save_full_path)
 
@@ -237,11 +237,7 @@ def load_optimizer_checkpoint(model, optimizer_checkpoint_path, rank):
         )
         return
 
-    full_osd = None
-
-    if rank == 0:
-        full_osd = torch.load(optimizer_checkpoint_path)
-
+    full_osd = torch.load(optimizer_checkpoint_path) if rank == 0 else None
     # called from all ranks, though only rank0 has a valid param for full_osd
     sharded_osd = FSDP.scatter_full_optim_state_dict(full_osd, model)
 

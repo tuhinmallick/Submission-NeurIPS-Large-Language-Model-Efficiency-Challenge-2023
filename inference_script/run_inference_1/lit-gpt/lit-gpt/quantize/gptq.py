@@ -152,7 +152,7 @@ if _TRITON_AVAILABLE:
         # of fp32 values for higher accuracy.
         # `accumulator` will be converted back to fp16 after the loop
         accumulator = tl.zeros((BLOCK_SIZE_M, BLOCK_SIZE_N), dtype=tl.float32)
-        for k in range(0, K, BLOCK_SIZE_K):
+        for _ in range(0, K, BLOCK_SIZE_K):
             # wasteful as it is to load everything twice, my attempts at avoiding it lead to slower code
             b12 = tl.load(b_ptrs, mask=b_mask)
             # Note that for simplicity, we don't apply a mask in K here.
@@ -311,9 +311,9 @@ class GPTQQuantizer:
         assert isinstance(linear_module, torch.nn.Linear)
 
         self.linear_module = linear_module
-        self.dev = self.linear_module.weight.device
         self.rows = linear_module.weight.shape[0]
         self.columns = linear_module.weight.shape[1]
+        self.dev = self.linear_module.weight.device
         self.H = torch.zeros((self.columns, self.columns), device=self.dev)
         self.nsamples = 0
         self.bits = bits
@@ -331,8 +331,8 @@ class GPTQQuantizer:
             device=self.dev,
         )
         self.zeros = torch.zeros_like(self.scales)
-        assert not (
-            self.actorder and self.groupsize != -1
+        assert (
+            not self.actorder or self.groupsize == -1
         ), "The permutation trick does not work for grouped quantization"
 
     @staticmethod

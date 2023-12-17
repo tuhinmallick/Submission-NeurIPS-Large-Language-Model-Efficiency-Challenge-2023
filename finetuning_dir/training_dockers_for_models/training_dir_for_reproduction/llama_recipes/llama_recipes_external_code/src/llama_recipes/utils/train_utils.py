@@ -54,22 +54,14 @@ def move_data_to_apt_device(train_config_enable_fsdp, batch, local_rank):
 
 def log_memory_footprint_details(memtrace, train_config, rank):
     if train_config.enable_fsdp:
-        if rank == 0:
-            print(f"Max CUDA memory allocated was {memtrace.peak} GB")
-            print(
-                f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
-            print(
-                f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
-            print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
-            print(
-                f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
-        else:
-            print(f"Max CUDA memory allocated was {memtrace.peak} GB")
-            print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
-            print(f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
-            print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
-            print(
-                f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
+        print(f"Max CUDA memory allocated was {memtrace.peak} GB")
+        print(
+            f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
+        print(
+            f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
+        print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
+        print(
+            f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
 
 #TODO: update best val loss properly
 #TODO: Call model.train() for consistency
@@ -91,22 +83,25 @@ def evaluate_and_save_gracefully(epoch_id, step_id,
     # find the evaluation loss and perplexity
     eval_ppl, eval_epoch_loss = evaluation(
         model, train_config, eval_dataloader, local_rank, tokenizer)
-    
+
     checkpoint_start_time = time.perf_counter()
-    
-    
+
+
     print("Eval epoch loss: ", eval_epoch_loss,
             "| best_val_loss: ", best_val_loss_yet)
-    is_best = eval_epoch_loss < best_val_loss_yet
     # if train_config.save_model and eval_epoch_loss < best_val_loss:
     if train_config.save_model:
         if train_config.enable_fsdp:
             dist.barrier()
         if train_config.use_peft:
             ###################
-            if train_config.enable_fsdp:
-                if rank == 0: print(f"we are about to save the PEFT modules")
-            else: print(f"we are about to save the PEFT modules")
+            if (
+                train_config.enable_fsdp
+                and rank == 0
+                or not train_config.enable_fsdp
+            ):
+                print("we are about to save the PEFT modules")
+            is_best = eval_epoch_loss < best_val_loss_yet
             ###############
             if is_best: save_dir = os.path.join(train_config.output_dir, f"best_model_yet_epoch_{epoch_id}_{step_id}")
             else: save_dir = os.path.join(train_config.output_dir, f"epoch_{epoch_id}_{step_id}")
@@ -119,18 +114,20 @@ def evaluate_and_save_gracefully(epoch_id, step_id,
                 '%Y-%m-%d %H:%M:%S %Z%z'))
             model.save_pretrained(save_dir)
             ########
-            if train_config.enable_fsdp:
-                if rank == 0: print(f"PEFT modules are saved in {train_config.output_dir} directory")
-            else:print(f"PEFT modules are saved in {train_config.output_dir} directory")
-            ###############
+            if (
+                train_config.enable_fsdp
+                and rank == 0
+                or not train_config.enable_fsdp
+            ): print(f"PEFT modules are saved in {train_config.output_dir} directory")
+                    ###############
 
         else:
-            if not train_config.use_peft and fsdp_config.checkpoint_type == StateDictType.FULL_STATE_DICT:
+            if fsdp_config.checkpoint_type == StateDictType.FULL_STATE_DICT:
 
                 save_model_checkpoint(
                     model, optimizer, rank, train_config, epoch=epoch_id
                 )
-            elif not train_config.use_peft and fsdp_config.checkpoint_type == StateDictType.SHARDED_STATE_DICT:
+            elif fsdp_config.checkpoint_type == StateDictType.SHARDED_STATE_DICT:
                 print(
                     " Saving the FSDP model checkpoints using SHARDED_STATE_DICT")
                 print("=====================================================")
@@ -154,7 +151,7 @@ def evaluate_and_save_gracefully(epoch_id, step_id,
                 print("=====================================================")
         if train_config.enable_fsdp:
             dist.barrier()
-            
+
     checkpoint_end_time = time.perf_counter() - checkpoint_start_time
     checkpoint_times.append(checkpoint_end_time)
     # print(a)
@@ -162,10 +159,11 @@ def evaluate_and_save_gracefully(epoch_id, step_id,
     if eval_epoch_loss < best_val_loss_yet:
         best_val_loss_yet = eval_epoch_loss
         str_display = f"best eval loss on epoch {epoch_id} and {step_id} is {best_val_loss_yet}"
-        if train_config.enable_fsdp:
-            if rank == 0: print(str_display)
-        else: print(str_display)
-        
+        if (
+            train_config.enable_fsdp
+            and rank == 0
+            or not train_config.enable_fsdp
+        ): print(str_display)
     val_loss.append(best_val_loss_yet)
     val_prep.append(eval_ppl)
     anmol_val_loss.append({"epoch_id":epoch_id, "ministep_id":step_id, "eval_epoch_loss":eval_epoch_loss, "best_val_loss_yet":best_val_loss_yet})
@@ -175,9 +173,7 @@ def evaluate_and_save_gracefully(epoch_id, step_id,
 def is_worthy_ministep(ministep_id, _tot_ministeps, grad_accumulation_steps):
     if (ministep_id + 1) % grad_accumulation_steps == 0 :
         return True
-    if ministep_id == _tot_ministeps - 1:
-        return True
-    return False
+    return ministep_id == _tot_ministeps - 1
 
 def train(model, train_dataloader, eval_dataloader, tokenizer, optimizer, lr_scheduler, gradient_accumulation_steps, train_config, fsdp_config=None, local_rank=None, rank=None):
     """

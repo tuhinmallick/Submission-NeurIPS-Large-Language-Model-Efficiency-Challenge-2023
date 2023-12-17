@@ -203,8 +203,8 @@ def test_against_original_open_llama_3b():
 @torch.inference_mode()
 def test_against_hf_phi():
     file_path = wd / "tests" / "original_phi_1_5.py"
-    url = "https://gist.githubusercontent.com/carmocca/8ec003d9e0d2fdb09ea92941cd0985b4/raw/2ba35c28824d4f4d5dce14f9588a80067cb6ae7f/original_phi_1_5.py"
     if not file_path.is_file():
+        url = "https://gist.githubusercontent.com/carmocca/8ec003d9e0d2fdb09ea92941cd0985b4/raw/2ba35c28824d4f4d5dce14f9588a80067cb6ae7f/original_phi_1_5.py"
         urlretrieve(url=url, filename=file_path)
 
     from lit_gpt import GPT, Config

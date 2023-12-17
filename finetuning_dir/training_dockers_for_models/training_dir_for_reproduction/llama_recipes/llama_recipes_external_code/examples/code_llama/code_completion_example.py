@@ -45,17 +45,17 @@ def main(
     else:
         print("No user prompt provided. Exiting.")
         sys.exit(1)
-    
+
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(seed)
     torch.manual_seed(seed)
-    
+
     model = load_model(model_name, quantization)
     if peft_model:
         model = load_peft_model(model, peft_model)
 
     model.eval()
-    
+
     if use_fast_kernels:
         """
         Setting 'use_fast_kernels' will enable
@@ -76,7 +76,7 @@ def main(
 
     # Safety check of the user prompt
     safety_results = [check(user_prompt) for check in safety_checker]
-    are_safe = all([r[1] for r in safety_results])
+    are_safe = all(r[1] for r in safety_results)
     if are_safe:
         print("User prompt deemed safe.")
         print(f"User prompt:\n{user_prompt}")
@@ -88,7 +88,7 @@ def main(
                 print(report)
         print("Skipping the inference as the prompt is not safe.")
         sys.exit(1)  # Exit the program with an error status
-        
+
     batch = tokenizer(user_prompt, return_tensors="pt")
 
     batch = {k: v.to("cuda") for k, v in batch.items()}
@@ -110,10 +110,10 @@ def main(
     e2e_inference_time = (time.perf_counter()-start)*1000
     print(f"the inference time is {e2e_inference_time} ms")
     output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
+
     # Safety check of the model output
     safety_results = [check(output_text) for check in safety_checker]
-    are_safe = all([r[1] for r in safety_results])
+    are_safe = all(r[1] for r in safety_results)
     if are_safe:
         print("User input and model output deemed safe.")
         print(f"Model output:\n{output_text}")

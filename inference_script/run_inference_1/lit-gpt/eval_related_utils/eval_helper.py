@@ -135,55 +135,36 @@ class QueryCategory(Enum):
 
 def find_category(txt):
     ans = QueryCategory.other_category
-    
+
     ###########
     _cnn_str = "article in 3 sentences"
     if _cnn_str in txt:
-        ans = QueryCategory.cnn_query
-        return ans
-    
+        return QueryCategory.cnn_query
     #############
     _mmlu_str = "multiple choice questions (with answers) about"
     if _mmlu_str in txt:
-        ans = QueryCategory.mmlu_query
-        return ans
-    
+        return QueryCategory.mmlu_query
     ########
     _tqa_str = "Who is the current president of the United States?"
     if _tqa_str in txt:
-        ans = QueryCategory.tqa_query
-        return ans
-    
+        return QueryCategory.tqa_query
     ########
     _bbq_str = "Alejandra Rodriguez and Luis Rios got into a heated debate"
     if _bbq_str in txt:
-        ans = QueryCategory.bbq_query
-        return ans
-    
+        return QueryCategory.bbq_query
     _bbq_str = "multiple choice questions (with answers)."
     if _bbq_str in txt:
-        ans = QueryCategory.bbq_query
-        return ans
-    
+        return QueryCategory.bbq_query
     ##############
     _gsm_str = "Given a mathematics problem, determine the answer"
     if _gsm_str in txt:
-        ans = QueryCategory.gsm_category
-        return ans
-    
+        return QueryCategory.gsm_category
     pattern = r"The answer is \d+."
-    match = re.search(pattern, txt)
-    if match:
-        ans = QueryCategory.gsm_category
-        return ans
-
-    
+    if match := re.search(pattern, txt):
+        return QueryCategory.gsm_category
     _gsm_str = "Daniel has a collection of 346 video games"
     if _gsm_str in txt:
-        ans = QueryCategory.gsm_category
-        return ans
-    
-    
+        return QueryCategory.gsm_category
     check_txt = [
         "Determine whether the following pairs of sentences embody an entailment relation or",
         "answer each of the following questions about causation",
@@ -195,21 +176,17 @@ def find_category(txt):
         "Which statement is sarcastic?",
         "Context: Today James"
     ]
-    
+
     for _elem in check_txt:
         if _elem in txt:
-            ans = QueryCategory.bigbench_category
-            return ans
+            return QueryCategory.bigbench_category
     if txt.startswith("Context:"):
-        ans = QueryCategory.bigbench_category
-        return ans
-        
+        return QueryCategory.bigbench_category
     ################
     if "Question:" in txt and "Answer:" in txt:
-        ans = QueryCategory.tqa_query
-        return ans
+        return QueryCategory.tqa_query
     #########
-    
+
     return ans
 
 
@@ -240,9 +217,8 @@ class FetchModel:
     def print_model_statuses(self):
         print("#####")
         print("Model statuses are:")
-        for model_path in  self.fetch_unique_models():
-            device_there = str(self.models_needed[model_path]['model'].device)
-            print(device_there, model_path)
+        for model_path in self.fetch_unique_models():
+            print(self.models_needed[model_path]['model'].device, model_path)
         print("#####")
                 
     def fetch_unique_models(self):
@@ -264,10 +240,7 @@ class FetchModel:
             if "cuda" in device_there:
                 model_on_gpu.append(model_path)
         assert(len(model_on_gpu)<2)
-        if len(model_on_gpu)==0:
-            return ""
-        else:
-            return model_on_gpu[0]
+        return "" if not model_on_gpu else model_on_gpu[0]
         
     def load_to_gpu(self, model_path):
         print("Loading to GPU")
@@ -293,15 +266,12 @@ class FetchModel:
         if curr_model_on_gpu == model_path:
             print("Model already on GPU")
             return
-        
+
         # if a model is there on GPU, then it is not the one we want.
         if curr_model_on_gpu !="":
             self.switch_to_cpu(curr_model_on_gpu)
-            torch.cuda.empty_cache()
-            self.load_to_gpu(model_path)
-        else:
-            torch.cuda.empty_cache()
-            self.load_to_gpu(model_path)
+        torch.cuda.empty_cache()
+        self.load_to_gpu(model_path)
             
                         
     def fetch_model_tokenizer_for_query(self, query_txt):

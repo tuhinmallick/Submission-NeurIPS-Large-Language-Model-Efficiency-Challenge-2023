@@ -24,11 +24,11 @@ def tokenize_dialog(dialog, tokenizer):
         dialog_tokens += [tokenizer(
             f"{B_INST} {(dialog[-1]['content']).strip()} {E_INST}",
         )]
-    
-    combined_tokens = {}  
-    for k in dialog_tokens[0].keys():
-        combined_tokens[k] = list(itertools.chain(*(t[k] for t in dialog_tokens)))
-    return combined_tokens
+
+    return {
+        k: list(itertools.chain(*(t[k] for t in dialog_tokens)))
+        for k in dialog_tokens[0].keys()
+    }
 
 
 def get_custom_dataset(dataset_config, tokenizer, split):

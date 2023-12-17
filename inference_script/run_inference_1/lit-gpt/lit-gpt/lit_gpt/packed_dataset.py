@@ -62,10 +62,7 @@ class PackedDatasetBuilder(object):
         if dtype == "auto":
             if vocab_size is None:
                 raise ValueError("vocab_size cannot be None when dtype='auto'")
-            if vocab_size is not None and vocab_size < 65500:
-                self._dtype = np.uint16
-            else:
-                self._dtype = np.int32
+            self._dtype = np.uint16 if vocab_size < 65500 else np.int32
         else:
             self._dtype = dtype
         self._counter = 0
@@ -216,8 +213,8 @@ class CombinedDataset(IterableDataset):
         self._seed = seed
         self._datasets = datasets
         self._weights = weights
-        n_datasets = len(datasets)
         if weights is None:
+            n_datasets = len(datasets)
             self._weights = [1 / n_datasets] * n_datasets
 
     def __iter__(self):

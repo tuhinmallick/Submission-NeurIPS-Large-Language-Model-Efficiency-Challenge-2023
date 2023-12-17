@@ -13,8 +13,11 @@ print("All adapters are: ", all_adapters)
 adapters_to_mix_substring = ["_0_3", "_2_243", "_3_243"]
 
 print("Filtering adapters to merge")
-all_adapters = list(filter(lambda x: any(
-    [y in x for y in adapters_to_mix_substring]), all_adapters))
+all_adapters = list(
+    filter(
+        lambda x: any(y in x for y in adapters_to_mix_substring), all_adapters
+    )
+)
 print("Adapters to merge are: ", all_adapters)
 
 BASE_MODEL = ""
@@ -24,7 +27,7 @@ for _adapter in all_adapters:
     adapter_path = os.path.join(DIR_WITH_MODELS, _adapter)
     print("Adapter path to merge: ", adapter_path)
 
-    unique_merge_substring = DIR_CONCERNED+"_WHOLE_"+_adapter
+    unique_merge_substring = f"{DIR_CONCERNED}_WHOLE_{_adapter}"
     path_after_save = os.path.join(SEND_MODELS_DIR, unique_merge_substring)
     print("Path where merged model will be saved is: ", path_after_save)
 

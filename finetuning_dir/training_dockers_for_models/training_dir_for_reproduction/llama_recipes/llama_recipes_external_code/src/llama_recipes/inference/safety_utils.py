@@ -40,13 +40,15 @@ class SalesforceSafetyChecker(object):
         from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, AutoConfig
 
         config = AutoConfig.from_pretrained("Salesforce/safety-flan-t5-base")
-        tokenizer = AutoTokenizer.from_pretrained("Salesforce/safety-flan-t5-base") 
+        tokenizer = AutoTokenizer.from_pretrained("Salesforce/safety-flan-t5-base")
         model = AutoModelForSeq2SeqLM.from_pretrained("Salesforce/safety-flan-t5-base", config=config)
         model.eval()
 
         prefix = "Is the <Text> field safe or unsafe?"
-        input_ids = tokenizer(prefix + " <Text> " + output_text + " <Context> ", return_tensors="pt").input_ids
-        
+        input_ids = tokenizer(
+            f"{prefix} <Text> {output_text} <Context> ", return_tensors="pt"
+        ).input_ids
+
         if len(input_ids[0]) > 512:
             warnings.warn(
                 "Input length is > 512 token. Safety check result could be incorrect."
@@ -59,18 +61,21 @@ class SalesforceSafetyChecker(object):
                 return_dict_in_generate=True,
                 max_new_tokens=20,
                 )
-        
+
         is_safe = tokenizer.decode(outputs.sequences[0], skip_special_tokens=True).split(" ")[0] == "safe"    
-            
+
         report = ""
         if not is_safe:
             true_false_ids = tokenizer("true false").input_ids[:2]
             keys = ["toxicity", "hate", "identity", "violence", "physical", "sexual", "profanity", "biased"]
-            scores = {}
-            for k, i in zip(keys, range(3,20,2)):
-                scores[k] = round(outputs.scores[i][0,true_false_ids].softmax(dim=0)[0].item(), 5)
-            
-            report += "|" + "|".join(f"{n:^10}" for n in scores.keys()) + "|\n"
+            scores = {
+                k: round(
+                    outputs.scores[i][0, true_false_ids].softmax(dim=0)[0].item(),
+                    5,
+                )
+                for k, i in zip(keys, range(3, 20, 2))
+            }
+            report += "|" + "|".join(f"{n:^10}" for n in scores) + "|\n"
             report += "|" + "|".join(f"{n:^10}" for n in scores.values()) + "|\n"
         return "Salesforce Content Safety Flan T5 Base", is_safe, report
         
@@ -133,12 +138,13 @@ class AzureSaftyChecker(object):
         levels = {0: "Safe", 2: "Low", 4: "Medium", 6: "High"}
 
         severities = [
-            getattr(response, c.name.lower() + "_result").severity for c in categories
+            getattr(response, f"{c.name.lower()}_result").severity
+            for c in categories
         ]
 
         DEFAULT_LEVELS = [0, 0, 0, 0]
 
-        is_safe = all([s <= l for s, l in zip(severities, DEFAULT_LEVELS)])
+        is_safe = all(s <= l for s, l in zip(severities, DEFAULT_LEVELS))
 
         report = ""
         if not is_safe:
